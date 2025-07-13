@@ -1,6 +1,6 @@
 import mysql.connector
 import csv
-import uuid
+import os
 from mysql.connector import errorcode
 
 def connect_db():
@@ -9,7 +9,7 @@ def connect_db():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Password@123",  # Replace with the password you used in CMD
+            password=""
         )
     except mysql.connector.Error as err:
         print(f"Error: {err}")
@@ -31,7 +31,7 @@ def connect_to_prodev():
         return mysql.connector.connect(
             host="localhost",
             user="root",
-            password="Password@123",  # Match the password from connect_db
+            password="",
             database="ALX_prodev"
         )
     except mysql.connector.Error as err:
@@ -47,7 +47,7 @@ def create_table(connection):
                 user_id CHAR(36) PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) NOT NULL,
-                age DECIMAL NOT NULL,
+                age DECIMAL(5,2) NOT NULL,
                 INDEX(user_id)
             )
         """)
@@ -58,20 +58,18 @@ def create_table(connection):
         print(f"Table creation failed: {err}")
 
 def insert_data(connection, csv_path):
-    """Inserts data into the user_data table from a CSV file."""
+    print(f"Looking for CSV file at: {csv_path}")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"File exists: {os.path.isfile(csv_path)}")
     try:
         cursor = connection.cursor()
         with open(csv_path, newline='', encoding='utf-8') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                user_id = str(uuid.uuid4())
-                name = row['name']
-                email = row['email']
-                age = row['age']
                 cursor.execute("""
-                    INSERT INTO user_data (user_id, name, email, age)
+                    INSERT IGNORE INTO user_data (user_id, name, email, age)
                     VALUES (%s, %s, %s, %s)
-                """, (user_id, name, email, age))
+                """, (row['user_id'], row['name'], row['email'], float(row['age'])))
         connection.commit()
         cursor.close()
         print("Data inserted successfully")
@@ -79,14 +77,5 @@ def insert_data(connection, csv_path):
         print(f"Data insert failed: {err}")
     except FileNotFoundError:
         print(f"CSV file not found: {csv_path}")
-
-def stream_user_data(connection):
-    """Generator to stream rows from user_data table one by one."""
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM user_data")
-    while True:
-        row = cursor.fetchone()
-        if row is None:
-            break
-        yield row
-    cursor.close()
+    except KeyError as e:
+        print(f"CSV file missing required column: {e}")
