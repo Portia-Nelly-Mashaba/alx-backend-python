@@ -1,7 +1,7 @@
 import sqlite3
 import functools
 
-def log_query(func):
+def log_queries(func):
     """
     Decorator that logs SQL queries before executing them.
     Assumes the wrapped function takes 'query' as its first argument or keyword.
@@ -17,7 +17,7 @@ def log_query(func):
         return func(*args, **kwargs)
     return wrapper
 
-@log_query
+@log_queries
 def fetch_all_users(query):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
@@ -26,6 +26,6 @@ def fetch_all_users(query):
     conn.close()
     return results
 
-# 🔍 Test execution
+# Test execution
 users = fetch_all_users(query="SELECT * FROM users")
 print(users)
