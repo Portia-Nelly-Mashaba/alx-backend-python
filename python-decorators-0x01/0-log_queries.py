@@ -11,9 +11,7 @@ def log_queries(func):
         # Try getting 'query' from kwargs first, then fallback to args[0]
         query = kwargs.get('query') if 'query' in kwargs else args[0] if args else None
         if query:
-            print(f"[LOG] Executing SQL Query: {query}")
-        else:
-            print("[LOG] No SQL query provided.")
+            print(f"Executing query: {query}")
         return func(*args, **kwargs)
     return wrapper
 
@@ -27,5 +25,6 @@ def fetch_all_users(query):
     return results
 
 # Test execution
-users = fetch_all_users(query="SELECT * FROM users")
-print(users)
+if __name__ == "__main__":
+    users = fetch_all_users(query="SELECT * FROM users")
+    print(users)
